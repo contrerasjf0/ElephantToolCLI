@@ -5,12 +5,34 @@ option=0
 
 # Install  postgres function
 install_postgres () {
-    echo "Installing postgres..."
+    echo -e "\n Checking  postgres installation...."
+    checkInstall=$(which psql)
+    if [ $? -eq 0 ]; then
+        echo -e "\n Postgres already installed"
+    else
+        read -s -p "Insert sudo password:" password
+        read -s -p "Insert password for  postgres:" passwordPostgres
+        echo "$password" | sudo -S apt update
+        echo "$password" | sudo -S apt-get -y install postgresql postgresql-contrib
+        sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{$passwordPostgres}';"
+        echo "$password" | sudo -S systemctl enable postgresql.service
+        echo "$password" | sudo -S systemctl start postgresql.service
+    fi    
+    read -n 1 -s -r -p "Hit [ENTER] to continue..."
 }
 
 # uninstall  postgres function
 uninstall_postgres () {
-    echo "Uninstalling postres..."
+    read -s -p "Insert  sudo password:" password
+    echo -e "\n"
+    echo "$password" | sudo -S systemctl stop postgresql.service
+    echo "$password" | sudo -S apt-get -y --purge remove postgresql\*
+    echo "$password" | sudo -S rm -r /etc/postgresql
+    echo "$password" | sudo -S rm -r /etc/postgresql-common
+    echo "$password" | sudo -S rm -r /var/lib/postgresql
+    echo "$password" | sudo -S userdel -r postgres
+    echo "$password" | sudo -S groupdel postgresql
+    read -n 1 -s -r -p "Hit [ENTER] to continue..."
 }
 
 # Generate backup function
