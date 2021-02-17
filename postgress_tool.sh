@@ -3,6 +3,29 @@
 
 option=0
 
+# Install  postgres function
+install_postgres () {
+    echo "Installing postgres..."
+}
+
+# uninstall  postgres function
+uninstall_postgres () {
+    echo "Uninstalling postres..."
+}
+
+# Generate backup function
+generate_backup () {
+    echo "Generating backup..."
+    echo "Backup Dir: $1"
+}
+
+# restore backup function
+restore_backup () {
+    echo "Restore backup..."
+    echo "Backup Dir: $1"
+}
+
+
 while :
 do
     #Clear the screen
@@ -26,19 +49,21 @@ do
 
     case $option in
          1)
-            echo -e "Installing"
+            install_postgres
             sleep 2
             ;;
          2)
-            echo "Uninstalling"
+            uninstall_postgres
             sleep 2
             ;;
          3)
-             echo "Making backup"
+             read -p "Backup Dir: " backupDir
+             generate_backup backupDir
              sleep 2
              ;;
          4)
-             echo "Restart backup"
+             read -p "Backup Dir: " backupDir
+             restore_backup backupDir
              sleep 2
              ;;
          5)
