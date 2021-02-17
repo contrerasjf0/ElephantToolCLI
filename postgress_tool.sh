@@ -35,18 +35,58 @@ uninstall_postgres () {
     read -n 1 -s -r -p "Hit [ENTER] to continue..."
 }
 
-# Generate backup function
-generate_backup () {
-    echo "Generating backup..."
-    echo "Backup Dir: $1"
-}
-
-# restore backup function
+# Restore  backup function
 restore_backup () {
-    echo "Restore backup..."
-    echo "Backup Dir: $1"
+    echo "List backups"
+    ls -1 $1/*.bak
+
+    read -p "Select backup:" backupName
+    echo -e "\n"
+    read -p "Define the DB name:" dbName
+
+    #Validate if the DB exist
+    validateDB=$(sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -wq $dbName)
+    if [ $? -eq 0 ]; then
+        echo "Restoring in the DB: $dbName"
+    else
+        sudo -u postgres psql -c "create database $dbName"
+    fi
+
+    if [ -f "$1/$backupName" ]; then
+        echo "Restoring..."
+        sudo -u postgres pg_restore -Fc -d $dbName "$1/$backupName"
+        echo "List DB"
+        sudo -u postgres psql -c "\l"
+    else
+        echo "The backup $backupName doesn't exist"
+    fi    
+    read -n 1 -s -r -p "Hit [ENTER] to continue..."
 }
 
+# generate backup function
+generate_backup () {
+
+    echo "List DB"
+    sudo -u postgres psql -c "\l"
+    
+    read -p "Select DB:" dbName
+    echo -e "\n"
+    
+    currentDate=`date +%Y%m%d`
+    
+    if [ -d "$1" ]; then
+        echo "Set dir permission"
+        echo "$password" | sudo -S chmod 755 $1
+
+        echo "Making backup..."
+        fullDir="$1/dbBackup$currentDate.bak"
+        sudo -u postgres pg_dump -Fc $dbName > "$fullDir"
+        echo "The backup was maded successfully in: $fullDir"
+    else
+        echo "The $1 dir doesn't exist"
+    fi
+    read -n 1 -s -r -p "Hit [ENTER] to continue..."
+}
 
 while :
 do
